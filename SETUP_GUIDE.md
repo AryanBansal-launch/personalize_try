@@ -43,6 +43,7 @@ npm run setup:content
 
 **After this step**: You should see entries in Contentstack Dashboard → Content → Personalized Content
 
+
 ---
 
 ## Step 3: Verify in Contentstack Dashboard (UI)
@@ -81,6 +82,8 @@ npm run setup:content
 
 ## Step 5: Create Attributes in Personalize Dashboard (UI)
 
+![Create Attributes in Personalize Dashboard](/images/attribute.png)
+
 1. **Go to**: Personalize → Your Project → Attributes
 2. **Create Attribute 1 - Location**:
    - Click "Create Attribute" or "New Attribute"
@@ -115,6 +118,8 @@ npm run setup:content
 ## Step 6: Create Audiences in Personalize Dashboard (UI)
 
 Audiences define user segments based on attribute conditions. You'll use these when creating experiences.
+
+![Create Audiences in Personalize Dashboard](/images/audience.png)
 
 1. **Go to**: Personalize → Your Project → Audiences
 2. **Create Audience 1 - US Location Audience**:
@@ -195,6 +200,8 @@ npm run setup:personalize
 
 **Important**: Entry variants are created automatically when you create experiences. You don't need to create variants separately.
 
+![Create Experiences in Personalize Dashboard](/images/experience.png)
+
 1. **Go to**: Personalize → Your Project → Experiences
 2. **Create Experience 1 - Location Experience (US)**:
    - Click "Create Experience" or "New Experience"
@@ -211,6 +218,8 @@ npm run setup:personalize
      - **Variant Name**: "US Location Variant"
      - **Customize Content**: Update the entry fields (title, description, content, etc.) with US-specific content
      - The variant is created automatically when you customize the content
+     - ![Create Variants in Experience](/public/images/variant.png)
+     -![Create variant Entries in Contentstack Dashboard](/images/entry.png)
    - **Save and Publish** the experience
 3. **Create Experience 2 - Location Experience (UK)**:
    - Click "Create Experience"
