@@ -62,103 +62,29 @@ export default function Home() {
         }
       }
 
-      // Log the attributes being sent to Personalize
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('📊 Personalize Attributes Being Sent:');
-      console.log('  Selected Attribute:', selectedAttribute);
-      if (selectedAttribute === 'default') {
-        console.log('  ⚠️  Default selected - no attributes sent, will fetch base entry');
-      } else {
-        const [key, value] = selectedAttribute.split(':');
-        console.log('  Parsed Key:', key);
-        console.log('  Parsed Value:', value);
-      }
-      console.log('  Attributes Object (before sending):', JSON.parse(JSON.stringify(userAttributes)));
-      if (userAttributes.location) {
-        console.log('  ✅ Location:', userAttributes.location);
-      } else {
-        console.log('  ❌ Location: NOT SET (will use base entry)');
-      }
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
       // Initialize Personalize with ONLY the selected user attributes
       // This should replace any previous attributes
       await reinitializePersonalize(projectUid, userAttributes);
 
       // Get active experiences
       const activeExperiences = getActiveExperiences();
-      console.log('✅ Active Experiences:', activeExperiences);
-
-      // Analyze which experiences matched and which didn't
-      const matchedExperiences = activeExperiences.filter(
-        (exp: { shortUid?: string; activeVariantShortUid?: string | null }) =>
-          exp.activeVariantShortUid !== null && exp.activeVariantShortUid !== undefined
-      );
-      const unmatchedExperiences = activeExperiences.filter(
-        (exp: { shortUid?: string; activeVariantShortUid?: string | null }) =>
-          exp.activeVariantShortUid === null || exp.activeVariantShortUid === undefined
-      );
-
-      console.log('\n📋 Experience Matching Analysis:');
-      console.log(`   Total Experiences: ${activeExperiences.length}`);
-      console.log(`   ✅ Matched: ${matchedExperiences.length} experience(s)`);
-      matchedExperiences.forEach((exp: { shortUid?: string; activeVariantShortUid?: string | null }) => {
-        console.log(`      - Experience "${exp.shortUid}" → Variant "${exp.activeVariantShortUid}"`);
-      });
-      console.log(`   ❌ Not Matched: ${unmatchedExperiences.length} experience(s)`);
-      unmatchedExperiences.forEach((exp: { shortUid?: string }) => {
-        console.log(`      - Experience "${exp.shortUid}" (no matching variant)`);
-      });
 
       // Get variant aliases to pass to Content Delivery API
       const variantAliases = getVariantAliases();
-      console.log('\n✅ Variant Aliases:', variantAliases);
-      
-      // Log which attributes determined these variants
-      console.log('\n🎯 Variant Matching Logic:');
-      if (userAttributes.location) {
-        console.log(`   Attributes sent: location="${userAttributes.location}"`);
-      } else {
-        console.log(`   Attributes sent: none`);
-      }
-      console.log(`   Personalize evaluates each experience's audience conditions:`);
-      console.log(`   - If audience uses AND: all conditions must match`);
-      console.log(`   - If audience uses OR: any condition can match`);
-      console.log(`   - Result: ${variantAliases.length} variant(s) active from ${matchedExperiences.length} matched experience(s)`);
-      
-      if (matchedExperiences.length > 0) {
-        console.log(`\n💡 The matched experiences have audiences that include:`);
-        if (userAttributes.location) {
-          console.log(`   - Location: "${userAttributes.location}"`);
-        }
-        console.log(`   (Check your Personalize Dashboard to see the exact AND/OR conditions)`);
-      }
-
-      console.log(`Fetching entry: ${entryUid} from content type: ${contentTypeUid}`);
 
       // Build the entry query
       const entryCall = Stack.contentType(contentTypeUid).entry(entryUid);
-      
-      console.log('\n📤 Fetching from Content Delivery API:');
-      console.log('   Variant Aliases:', variantAliases);
       
       let result;
       if (variantAliases && variantAliases.length > 0) {
         // Convert variant aliases array to comma-separated string
         const variantAlias = variantAliases.join(',');
-        console.log('   ✅ Fetching entry with variants:', variantAlias);
         // Use .variants() method to fetch variant content
         result = await entryCall.variants(variantAlias).fetch();
       } else {
-        console.log('   ⚠️  No variants active, fetching base entry');
         // Fetch the entry without variant aliases
         result = await entryCall.fetch();
       }
-
-      // Log the raw result for debugging
-      console.log('Contentstack API Response:', result);
-      console.log('Result type:', typeof result);
-      console.log('Is array:', Array.isArray(result));
 
       // Handle the result - it might be an array or a single entry
       let fetchedEntry: ContentEntry | null = null;
@@ -205,39 +131,6 @@ export default function Home() {
       } else {
         setVariantInfo('Default content (no variant matched)');
       }
-      
-      // Check for variant information in the entry response
-      console.log('\n📦 Entry Response Analysis:');
-      console.log('Fetched Entry:', fetchedEntry);
-      console.log('Entry Title:', fetchedEntry.title);
-      console.log('Entry Description:', fetchedEntry.description);
-      console.log('Entry UID:', fetchedEntry.uid);
-      
-      // Check if entry has variant-specific content
-      const hasVariants = fetchedEntry.publish_details?.variants;
-      if (hasVariants && typeof hasVariants === 'object') {
-        const variants = hasVariants as Record<string, unknown>;
-        const variantKeys = Object.keys(variants);
-        console.log('✅ Entry variants in publish_details:', variantKeys);
-        console.log('Variant details:', variants);
-      } else {
-        console.log('❌ No variants found in publish_details.');
-        console.log('Full publish_details:', fetchedEntry.publish_details);
-        console.log('\n⚠️  IMPORTANT: This entry does not have personalized variants configured.');
-        console.log('   To see personalized content, you need to:');
-        console.log('   1. Go to Contentstack Dashboard → Personalize → Your Project');
-        console.log('   2. Open the experience (e.g., experience "c" or "e")');
-        console.log('   3. Link this entry (UID: ' + entryUid + ') to the experience');
-        console.log('   4. Create variants within the experience and customize the entry content for each variant');
-        console.log('   5. Publish the experience');
-        console.log('\n   Currently, the Personalize SDK is detecting variants, but the entry');
-        console.log('   itself doesn\'t have variant-specific content configured in the dashboard.');
-      }
-      
-      // Check if the entry content matches any variant
-      console.log('\n🔍 Checking if entry content is variant-specific:');
-      console.log('   Current content is the base/default entry content.');
-      console.log('   If variants were configured, the content would be different based on the x-personalize header.');
     } catch (err) {
       console.error('Error fetching content:', err);
       
