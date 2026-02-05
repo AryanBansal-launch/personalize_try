@@ -1,6 +1,6 @@
 # Contentstack Personalize Demo
 
-This is a [Next.js](https://nextjs.org) project demonstrating how to integrate [Contentstack Personalize](https://www.contentstack.com/docs/personalize) into a web application. The project shows how to deliver personalized content variants to users based on their attributes (such as location, age group, etc.) using Contentstack's Personalization engine.
+This is a [Next.js](https://nextjs.org) project demonstrating how to integrate [Contentstack Personalize](https://www.contentstack.com/docs/personalize) into a web application. The project shows how to deliver personalized content variants to users based on their attributes (such as location) using Contentstack's Personalization engine.
 
 ## What This Project Does
 
@@ -8,13 +8,13 @@ This demo application showcases:
 
 - **Content Personalization**: Dynamically serve different content variants to users based on their attributes
 - **Real-time Variant Resolution**: Use Contentstack Personalize SDK to determine which content variant to show
-- **Attribute-based Targeting**: Personalize content based on user attributes like location (US, UK) and age group (Adult, Senior, Youth)
+- **Attribute-based Targeting**: Personalize content based on user attributes like location (US, UK)
 - **Content Delivery Integration**: Fetch personalized content from Contentstack CMS using variant aliases
 - **Interactive Demo UI**: A simple interface with dropdowns to simulate different user attributes and see personalized content in real-time
 
 ### How Personalization Works
 
-1. User selects attributes (e.g., Location: US, Age Group: Adult) via dropdowns
+1. User selects attributes (e.g., Location: US) via dropdowns
 2. Personalize SDK evaluates which experiences match these attributes
 3. SDK returns variant aliases for matched experiences
 4. Content Delivery API fetches the entry with variant aliases
@@ -29,7 +29,7 @@ This demo application showcases:
 
 #### `app/page.tsx`
 The main page component that:
-- Renders the UI with attribute selection dropdowns (Location, Age Group)
+- Renders the UI with attribute selection dropdowns (Location)
 - Initializes the Personalize SDK with user attributes
 - Fetches personalized content from Contentstack
 - Displays the variant information and content
@@ -66,7 +66,7 @@ Helper script that:
 - Fetches existing entries from Contentstack
 - Displays variant configuration information
 - Provides guidance on creating variants in Personalize Dashboard
-- Shows what variants should be created for location and age group personalization
+- Shows what variants should be created for location personalization
 - Run with: `npm run setup:personalize`
 
 
@@ -126,7 +126,6 @@ NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=your_project_uid_here
 - **Region**: Your stack region (us, eu, azure-na, azure-eu, etc.)
 - **Personalize Project UID**: Contentstack Dashboard → Personalize → Your Project → Settings → General → Project Details
 
-For detailed information, see [`ENV_VARIABLES.md`](./ENV_VARIABLES.md).
 
 ### 3. Set Up Content
 
@@ -144,8 +143,8 @@ This will:
 ### 4. Configure Personalize
 
 Follow the detailed setup guide in [`SETUP_GUIDE.md`](./SETUP_GUIDE.md) to:
-- Create attributes (location, ageGroup)
-- Create audiences (US Users, UK Users, Adult Users, etc.)
+- Create attributes (location)
+- Create audiences (US Users, UK Users, etc.)
 - Create experiences with variants
 - Publish experiences
 
@@ -189,7 +188,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Key Concepts
 
-- **Attributes**: User characteristics (location, ageGroup) used for personalization
+- **Attributes**: User characteristics (location) used for personalization
 - **Audiences**: User segments defined by attribute conditions
 - **Experiences**: Personalization rules that link audiences to content variants
 - **Variants**: Personalized versions of content entries

@@ -235,20 +235,6 @@ async function createSampleEntries(client: ReturnType<typeof contentstack.client
       cta_text: 'View UK Offers',
       cta_link: '/uk-offers',
     },
-    {
-      title: 'Welcome Adult Users',
-      description: 'Content personalized for adult age group',
-      content: 'As an adult user, you have access to our full range of products and services. Explore what we have to offer!',
-      cta_text: 'Browse Products',
-      cta_link: '/products',
-    },
-    {
-      title: 'Welcome Senior Users',
-      description: 'Content personalized for senior age group',
-      content: 'We have special offers and content designed specifically for senior users. Take advantage of our senior discounts!',
-      cta_text: 'View Senior Offers',
-      cta_link: '/senior-offers',
-    },
   ];
 
   for (const entryData of sampleEntries) {

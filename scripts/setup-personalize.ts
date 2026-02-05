@@ -137,70 +137,6 @@ async function setupLocationVariants(
   }
 }
 
-/**
- * Setup variants for age group personalization
- */
-async function setupAgeGroupVariants(
-  client: ReturnType<typeof contentstack.client>,
-  baseEntryUid: string
-): Promise<void> {
-  console.log('\n👥 Setting up age group-based variants...');
-
-  const ageGroupVariants: VariantConfig[] = [
-    {
-      name: 'Adult Age Group Variant',
-      uid: 'variant_adult_age',
-      entryTitle: 'Welcome Adult Users',
-      personalizeMetadata: {
-        project_uid: PERSONALIZE_PROJECT_UID,
-        variant_short_uid: 'adult_age',
-      },
-      entryData: {
-        title: 'Welcome Adult Users',
-        description: 'Content personalized for adult age group',
-        content: 'As an adult user, you have access to our full range of products and services. Explore what we have to offer!',
-        cta_text: 'Browse Products',
-        cta_link: '/products',
-      },
-    },
-    {
-      name: 'Senior Age Group Variant',
-      uid: 'variant_senior_age',
-      entryTitle: 'Welcome Senior Users',
-      personalizeMetadata: {
-        project_uid: PERSONALIZE_PROJECT_UID,
-        variant_short_uid: 'senior_age',
-      },
-      entryData: {
-        title: 'Welcome Senior Users',
-        description: 'Content personalized for senior age group',
-        content: 'We have special offers and content designed specifically for senior users. Take advantage of our senior discounts!',
-        cta_text: 'View Senior Offers',
-        cta_link: '/senior-offers',
-      },
-    },
-    {
-      name: 'Youth Age Group Variant',
-      uid: 'variant_youth_age',
-      entryTitle: 'Welcome Youth Users',
-      personalizeMetadata: {
-        project_uid: PERSONALIZE_PROJECT_UID,
-        variant_short_uid: 'youth_age',
-      },
-      entryData: {
-        title: 'Welcome Youth Users',
-        description: 'Content personalized for youth age group',
-        content: 'Hey there! Check out our exciting content and offers designed for young users like you!',
-        cta_text: 'Explore Youth Content',
-        cta_link: '/youth-content',
-      },
-    },
-  ];
-
-  for (const variant of ageGroupVariants) {
-    await displayVariantInfo(baseEntryUid, variant);
-  }
-}
 
 /**
  * Main setup function
@@ -264,15 +200,11 @@ async function main() {
     // Setup location-based variants (just for information)
     await setupLocationVariants(client, baseEntry.uid);
 
-    // Setup age group-based variants (just for information)
-    await setupAgeGroupVariants(client, baseEntry.uid);
-
     console.log('\n✅ Personalize setup information provided!');
     console.log('\n📋 Next steps (IMPORTANT - Do these in Personalize Dashboard):');
     console.log('   1. Go to Contentstack Dashboard → Personalize → Your Project');
     console.log('   2. Create Attributes (if not already done):');
     console.log('      - Name: location, Key: location');
-    console.log('      - Name: ageGroup, Key: ageGroup');
     console.log('   3. Create Experiences (this is where variants are created):');
     console.log('      - Go to Experiences → Create Experience');
     console.log('      - Select your entry: "Welcome to Our Platform"');
@@ -285,7 +217,7 @@ async function main() {
     console.log('        * Customize the content fields (title, description, content, etc.)');
     console.log('        * This creates the variant automatically');
     console.log('      - Save and Publish the experience');
-    console.log('   4. Repeat for other variants (UK, Adult, Senior, Youth)');
+    console.log('   4. Repeat for other variants (UK, etc.)');
     console.log('   5. Test personalization in your app\n');
   } catch (error: unknown) {
     const err = error as { message?: string; stack?: string };

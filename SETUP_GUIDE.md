@@ -30,13 +30,13 @@ npm run setup:content
 
 **What this does**:
 - Creates the `personalized_content` content type
-- Creates 5 sample entries
+- Creates 3 sample entries
 - Publishes everything to your environment
 
 **Expected output**:
 - ✅ Content type created
 - ✅ Content type published
-- ✅ 5 entries created and published
+- ✅ 3 entries created and published
 - ✅ Verification successful
 
 **Note**: If you see "already exists" messages, that's fine - the script will continue.
@@ -52,12 +52,10 @@ npm run setup:content
 2. **Navigate to**: Content → Your Stack → Content
 3. **Verify**:
    - You see "Personalized Content" content type
-   - You see 5 entries:
+   - You see 3 entries:
      - Welcome to Our Platform
      - Welcome US Users
      - Welcome UK Users
-     - Welcome Adult Users
-     - Welcome Senior Users
 
 **✅ Checkpoint**: If you see the entries, proceed to Step 4.
 
@@ -94,24 +92,16 @@ npm run setup:content
      - This Key will be used when setting attributes: `{ location: selectedLocation }`
    - **Description** (optional): "User's location for personalization"
    - Click "Create"
-3. **Create Attribute 2 - Age Group**:
-   - Click "Create Attribute" or "New Attribute"
-   - **Name (required)**: `ageGroup`
-   - **Key (required)**: `ageGroup` (must match the name, lowercase, no spaces)
-     - In your code (`app/page.tsx`), you use `ageGroup` as the attribute key
-     - This Key will be used when setting attributes: `{ ageGroup: selectedAgeGroup }`
-   - **Description** (optional): "User's age group for personalization"
-   - Click "Create"
 
 **Important Notes**:
 - The **Key** field is required and must be filled in (you'll see an error if it's empty)
 - The Key should be lowercase, no spaces (use camelCase if needed)
 - The Key must exactly match what you use in your code when setting attributes
-- In your code, you set attributes as: `{ location: 'us', ageGroup: 'adult' }`
-- So the Keys in Personalize should be: `location` and `ageGroup` (not `selectedLocation` or `selectedAgeGroup`)
-- The dropdown values (like `'us'`, `'uk'`, `'adult'`, `'senior'`) are the attribute **values**, not the keys
+- In your code, you set attributes as: `{ location: 'us' }`
+- So the Key in Personalize should be: `location` (not `selectedLocation`)
+- The dropdown values (like `'us'`, `'uk'`) are the attribute **values**, not the keys
 
-**✅ Checkpoint**: You have 2 attributes created (location and ageGroup) with their keys set.
+**✅ Checkpoint**: You have 1 attribute created (location) with its key set.
 
 ---
 
@@ -139,34 +129,10 @@ Audiences define user segments based on attribute conditions. You'll use these w
      - **Operator**: `equals`
      - **Value**: `uk`
    - Click "Create"
-4. **Create Audience 3 - Adult Age Group Audience**:
-   - Click "Create Audience"
-   - **Name**: "Adult Users"
-   - **Add Condition**:
-     - **Attribute**: `ageGroup`
-     - **Operator**: `equals`
-     - **Value**: `adult`
-   - Click "Create"
-5. **Create Audience 4 - Senior Age Group Audience**:
-   - Click "Create Audience"
-   - **Name**: "Senior Users"
-   - **Add Condition**:
-     - **Attribute**: `ageGroup`
-     - **Operator**: `equals`
-     - **Value**: `senior`
-   - Click "Create"
-6. **Create Audience 5 - Youth Age Group Audience** (optional):
-   - Click "Create Audience"
-   - **Name**: "Youth Users"
-   - **Add Condition**:
-     - **Attribute**: `ageGroup`
-     - **Operator**: `equals`
-     - **Value**: `youth`
-   - Click "Create"
 
 **Important Notes**:
 - Audiences are reusable - you can use the same audience in multiple experiences
-- You can combine multiple conditions in one audience (e.g., location AND ageGroup)
+- You can combine multiple conditions in one audience if needed
 - The attribute values must match exactly what you use in your code dropdowns
 
 **✅ Checkpoint**: You have audiences created for your user segments.
@@ -187,7 +153,6 @@ npm run setup:personalize
 **Expected output**:
 - ✅ Found X entries
 - ℹ️  Variant information displayed for location-based variants
-- ℹ️  Variant information displayed for age group-based variants
 
 **Important Note**: 
 - Entry variants are **NOT created by this script**
@@ -228,21 +193,7 @@ npm run setup:personalize
    - **Add Audience**: Select "UK Users" audience (or add condition: `location` equals `uk`)
    - **Create Variant**: Customize with UK-specific content
    - **Save and Publish**
-4. **Create Experience 3 - Age Group Experience (Adult)**:
-   - Click "Create Experience"
-   - **Name**: "Age Group Personalization - Adult"
-   - **Select Entry**: Same entry
-   - **Add Audience**: Select "Adult Users" audience (or add condition: `ageGroup` equals `adult`)
-   - **Create Variant**: Customize with adult-specific content
-   - **Save and Publish**
-5. **Create Experience 4 - Age Group Experience (Senior)**:
-   - Click "Create Experience"
-   - **Name**: "Age Group Personalization - Senior"
-   - **Select Entry**: Same entry
-   - **Add Audience**: Select "Senior Users" audience (or add condition: `ageGroup` equals `senior`)
-   - **Create Variant**: Customize with senior-specific content
-   - **Save and Publish**
-6. **Repeat** for other audiences if desired (e.g., Youth)
+4. **Repeat** for other location audiences if desired
 
 **Key Points**:
 - You can use pre-created audiences OR add conditions directly in the experience
@@ -294,13 +245,12 @@ npm run dev
 
 1. **Open**: http://localhost:3000
 2. **You should see**:
-   - Two dropdowns (Location and Age Group)
+   - A dropdown for Location
    - Content displayed below
-3. **Test different combinations**:
+3. **Test different selections**:
    - Select "United States" → Should show US-specific content
    - Select "United Kingdom" → Should show UK-specific content
-   - Select "Adult" → Should show adult-specific content
-   - Select "Senior" → Should show senior-specific content
+   - Select "Default" → Should show base entry content
 4. **Check browser console** (F12):
    - Should see "Active Experiences" logged
    - Should see "Variant Aliases" logged
@@ -325,8 +275,8 @@ npm run dev
   - Verify attribute **Keys** match what you're using in your code (check `app/page.tsx`)
   - Verify attribute values match the values in your dropdowns (case-sensitive)
   - Make sure audiences in experiences match the attribute values you're sending
-  - Ensure the attribute Key in Personalize matches: `location` and `ageGroup` (not `selectedLocation` or `selectedAgeGroup`)
-  - Check that the audience conditions use the exact same values as your dropdowns (e.g., `'us'`, `'uk'`, `'adult'`, `'senior'`)
+  - Ensure the attribute Key in Personalize matches: `location` (not `selectedLocation`)
+  - Check that the audience conditions use the exact same values as your dropdowns (e.g., `'us'`, `'uk'`)
 
 ### Issue: Variants not created by script
 - **Solution**: Create variants manually in Contentstack Dashboard:
@@ -367,8 +317,8 @@ npm run dev
 - [ ] Content setup script run successfully
 - [ ] Entries visible in Contentstack Dashboard
 - [ ] Personalize project created and connected
-- [ ] Attributes created (location, ageGroup) with Keys set
-- [ ] Audiences created (US Users, UK Users, Adult Users, Senior Users, etc.)
+- [ ] Attributes created (location) with Key set
+- [ ] Audiences created (US Users, UK Users, etc.)
 - [ ] Personalize variants setup script run (optional - for information)
 - [ ] Experiences created in Personalize Dashboard
 - [ ] Variants created automatically when customizing experiences
