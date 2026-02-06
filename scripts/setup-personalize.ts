@@ -3,6 +3,7 @@
 import * as contentstack from '@contentstack/management';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { createCmaClient, CmaError } from './cma';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -12,6 +13,13 @@ const MANAGEMENT_TOKEN = process.env.NEXT_PUBLIC_CONTENTSTACK_MANAGEMENT_TOKEN |
 const ENVIRONMENT = process.env.CONTENTSTACK_ENVIRONMENT || process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT || '';
 const REGION = process.env.CONTENTSTACK_REGION || process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || 'aws-na';
 const PERSONALIZE_PROJECT_UID = process.env.NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID || '';
+const LOCALE = process.env.CONTENTSTACK_LOCALE || process.env.NEXT_PUBLIC_CONTENTSTACK_LOCALE || 'en-us';
+
+// Flags
+const SHOULD_CREATE_VARIANTS =
+  (process.env.CONTENTSTACK_CREATE_ENTRY_VARIANTS || '').toLowerCase() === 'true';
+const SHOULD_PUBLISH_VARIANTS =
+  (process.env.CONTENTSTACK_PUBLISH_ENTRY_VARIANTS || '').toLowerCase() === 'true';
 
 // Configuration
 const CONTENT_TYPE_UID = 'personalized_content';
@@ -35,6 +43,80 @@ interface VariantConfig {
     cta_text?: string;
     cta_link?: string;
   };
+}
+
+type CreatedVariantInfo = {
+  uid?: string;
+  variant_uid?: string;
+  name?: string;
+  // keep index signature for any future fields
+  [key: string]: unknown;
+};
+
+/**
+ * Create an entry variant via CMA (REST).
+ *
+ * Doc reference: Create Entry Variant endpoint in CMA
+ * `https://www.contentstack.com/docs/developers/apis/content-management-api#create-entry-variant`
+ */
+async function createEntryVariantViaCma(args: {
+  entryUid: string;
+  variant: VariantConfig;
+}): Promise<CreatedVariantInfo> {
+  const cma = createCmaClient({
+    apiKey: API_KEY,
+    managementToken: MANAGEMENT_TOKEN,
+    region: REGION,
+  });
+
+  // NOTE: The exact schema is driven by the CMA docs.
+  // We send the variant's entry fields under `entry`, and include personalize metadata
+  // (project_uid + variant_short_uid) so Personalize can resolve the alias.
+  const payload = {
+    entry_variant: {
+      uid: args.variant.uid,
+      name: args.variant.name,
+      locale: LOCALE,
+      entry: args.variant.entryData,
+      personalize: args.variant.personalizeMetadata,
+    },
+  };
+
+  const res = await cma.request<{ entry_variant?: CreatedVariantInfo }>(
+    'POST',
+    `/v3/content_types/${CONTENT_TYPE_UID}/entries/${args.entryUid}/variants`,
+    payload
+  );
+
+  return res.entry_variant || (res as unknown as CreatedVariantInfo);
+}
+
+/**
+ * Publish an entry variant via CMA (REST).
+ *
+ * We keep this optional because some stacks prefer creating variants first,
+ * then publishing after verification.
+ */
+async function publishEntryVariantViaCma(args: {
+  entryUid: string;
+  variantUid: string;
+}): Promise<void> {
+  const cma = createCmaClient({
+    apiKey: API_KEY,
+    managementToken: MANAGEMENT_TOKEN,
+    region: REGION,
+  });
+
+  await cma.request(
+    'POST',
+    `/v3/content_types/${CONTENT_TYPE_UID}/entries/${args.entryUid}/variants/${args.variantUid}/publish`,
+    {
+      publishDetails: {
+        environments: [ENVIRONMENT],
+        locales: [LOCALE],
+      },
+    }
+  );
 }
 
 /**
@@ -68,23 +150,22 @@ async function fetchEntries(
 
 /**
  * Display entry variant configuration information
- * Note: Entry variants are created through Personalize Dashboard when creating experiences.
- * The Management SDK doesn't provide a direct API for creating entry variants.
+ * Note: Entry variants can be created via CMA REST (this script can do it),
+ * or created automatically when you create experiences in Personalize Dashboard.
  */
 async function displayVariantInfo(
   entryUid: string,
   variantConfig: VariantConfig
 ): Promise<void> {
-  // According to Contentstack Management SDK documentation,
-  // Entry variants are created through the Personalize Dashboard when setting up experiences.
-  // The Management SDK doesn't provide a direct create method for entry variants.
-  // Instead, variants are created as part of the experience setup process.
-  
   console.log(`ℹ️  Variant: "${variantConfig.name}"`);
   console.log(`   Entry UID: ${entryUid}`);
   console.log(`   Suggested Variant Name: ${variantConfig.name}`);
   console.log(`   Content Preview: ${variantConfig.entryData.title}`);
-  console.log(`   → Create this variant when setting up experiences in Personalize Dashboard`);
+  console.log(
+    SHOULD_CREATE_VARIANTS
+      ? `   → This script will attempt to create this entry variant via CMA`
+      : `   → Create this variant in Personalize Dashboard (or set CONTENTSTACK_CREATE_ENTRY_VARIANTS=true)`
+  );
 }
 
 
@@ -134,6 +215,30 @@ async function setupLocationVariants(
 
   for (const variant of locationVariants) {
     await displayVariantInfo(baseEntryUid, variant);
+    if (SHOULD_CREATE_VARIANTS) {
+      try {
+        const created = await createEntryVariantViaCma({ entryUid: baseEntryUid, variant });
+        const createdUid = (created.uid || created.variant_uid) as string | undefined;
+        console.log(`✅ Created entry variant "${variant.name}"${createdUid ? ` (UID: ${createdUid})` : ''}`);
+
+        if (SHOULD_PUBLISH_VARIANTS && createdUid) {
+          await publishEntryVariantViaCma({ entryUid: baseEntryUid, variantUid: createdUid });
+          console.log(`   Published variant to ${ENVIRONMENT} (${LOCALE})`);
+        } else if (SHOULD_PUBLISH_VARIANTS && !createdUid) {
+          console.log(`⚠️  Variant created but UID missing in response; skipping publish.`);
+        }
+      } catch (error: unknown) {
+        if (error instanceof CmaError) {
+          console.error(`❌ CMA error creating/publishing variant "${variant.name}": ${error.status} ${error.statusText}`);
+          if (error.responseBody) {
+            console.error('   Response:', JSON.stringify(error.responseBody, null, 2));
+          }
+        } else {
+          const err = error as { message?: string };
+          console.error(`❌ Error creating/publishing variant "${variant.name}":`, err?.message || 'Unknown error');
+        }
+      }
+    }
   }
 }
 
@@ -163,6 +268,9 @@ async function main() {
   console.log(`  Environment: ${ENVIRONMENT}`);
   console.log(`  Region: ${REGION}`);
   console.log(`  Personalize Project UID: ${PERSONALIZE_PROJECT_UID || 'Not set'}`);
+  console.log(`  Locale: ${LOCALE}`);
+  console.log(`  Create entry variants via CMA: ${SHOULD_CREATE_VARIANTS ? 'YES' : 'no'}`);
+  console.log(`  Publish entry variants via CMA: ${SHOULD_PUBLISH_VARIANTS ? 'YES' : 'no'}`);
 
   // Initialize Management API client
   const client = contentstack.client({
@@ -189,13 +297,13 @@ async function main() {
     const baseEntry = entries.find((e) => e.title.includes('Welcome to Our Platform')) || entries[0];
     console.log(`\n📌 Using entry "${baseEntry.title}" (${baseEntry.uid}) as base for variants`);
 
-    // Note: Entry variants are created through Personalize Dashboard when creating experiences
-    // The Management SDK doesn't provide a direct API for creating entry variants
-    // Instead, variants are created as part of the experience setup process
-    
     console.log('\n📝 Entry Variant Information:');
-    console.log('   Entry variants are created in Personalize Dashboard when you create experiences.');
-    console.log('   The script will show you the variant configurations you can use.\n');
+    console.log(
+      SHOULD_CREATE_VARIANTS
+        ? '   This run will attempt to create entry variants via the CMA REST API.'
+        : '   This run will only show variant configs (no API writes).'
+    );
+    console.log('   You can also create variants automatically when you create experiences in Personalize Dashboard.\n');
 
     // Setup location-based variants (just for information)
     await setupLocationVariants(client, baseEntry.uid);

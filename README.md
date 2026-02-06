@@ -65,9 +65,29 @@ Automation script that:
 Helper script that:
 - Fetches existing entries from Contentstack
 - Displays variant configuration information
+- Can optionally create entry variants via Content Management API (CMA)
 - Provides guidance on creating variants in Personalize Dashboard
 - Shows what variants should be created for location personalization
 - Run with: `npm run setup:personalize`
+
+To enable programmatic variant creation/publishing, set:
+
+- `CONTENTSTACK_CREATE_ENTRY_VARIANTS=true`
+- `CONTENTSTACK_PUBLISH_ENTRY_VARIANTS=true` (optional)
+
+#### `scripts/setup-personalize-management.ts`
+Automation script that (optionally) replaces most Personalize-dashboard setup:
+- Creates **Attributes**, **Audiences**, and a **Segmented Experience + ACTIVE version**
+- Authenticates using **`authtoken`** (per your request) instead of OAuth
+- Run with: `npm run setup:personalize:mgmt`
+
+Required env vars:
+- `NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID`
+- `CONTENTSTACK_PERSONALIZE_AUTHTOKEN` (do **not** expose this to the browser)
+
+Optional env vars (if your tenant uses a different host/prefix than the defaults):
+- `CONTENTSTACK_PERSONALIZE_MANAGEMENT_BASE_URL`
+- `CONTENTSTACK_PERSONALIZE_MANAGEMENT_API_PREFIX`
 
 
 

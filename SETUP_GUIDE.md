@@ -149,15 +149,22 @@ npm run setup:personalize
 - Fetches your existing entries
 - Displays variant configuration information
 - Provides guidance on creating variants
+- Optionally creates/publishes entry variants via CMA if enabled
 
 **Expected output**:
 - ✅ Found X entries
 - ℹ️  Variant information displayed for location-based variants
 
 **Important Note**: 
-- Entry variants are **NOT created by this script**
+- By default, entry variants are **NOT created by this script**
 - Variants are created automatically when you create experiences in Personalize Dashboard (Step 8)
 - This script just provides information about what variants you should create
+
+**Optional (Programmatic variant creation via CMA)**:
+Set these env vars before running:
+
+- `CONTENTSTACK_CREATE_ENTRY_VARIANTS=true`
+- `CONTENTSTACK_PUBLISH_ENTRY_VARIANTS=true` (optional)
 
 ---
 
@@ -206,6 +213,25 @@ npm run setup:personalize
 **✅ Checkpoint**: You have at least one experience with a variant created and published.
 
 ---
+
+## (Optional) Automate Personalize Setup via API (Attributes/Audiences/Experiences)
+
+If you want to skip most of the Personalize dashboard setup (Attributes, Audiences, Experiences), you can run the new script that uses the **Personalize Management API** ([docs](https://www.contentstack.com/docs/developers/apis/personalize-management-api)).
+
+1. Add this to `personalize/.env` (server-side only):
+
+- `CONTENTSTACK_PERSONALIZE_AUTHTOKEN=...`
+- `NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=...`
+
+2. Run:
+
+```bash
+npm run setup:personalize:mgmt
+```
+
+If your org uses a different Personalize API host/prefix, also set:
+- `CONTENTSTACK_PERSONALIZE_MANAGEMENT_BASE_URL`
+- `CONTENTSTACK_PERSONALIZE_MANAGEMENT_API_PREFIX`
 
 ## Step 9: Update Your App Code
 

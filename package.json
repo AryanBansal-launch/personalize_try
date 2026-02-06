@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "setup:content": "tsx scripts/setup-content.ts",
-    "setup:personalize": "tsx scripts/setup-personalize.ts"
+    "setup:personalize": "tsx scripts/setup-personalize.ts",
+    "setup:personalize:mgmt": "tsx scripts/setup-personalize-management.ts"
   },
   "dependencies": {
     "@contentstack/delivery-sdk": "^4.10.0",
